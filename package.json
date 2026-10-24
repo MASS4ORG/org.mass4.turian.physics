@@ -1,0 +1,34 @@
+{
+  "version": "1.0.0",
+  "displayName": "3D Physics",
+  "description": "Rigid bodies, colliders, materials, queries, triggers, joints, character controller and wheels behind a swappable backend.",
+  "author": "MASS4",
+  "license": "MPL-2.0",
+  "categories": [
+    "turian:simulation"
+  ],
+  "keywords": [
+    "physics",
+    "rigidbody",
+    "collider",
+    "raycast"
+  ],
+  "id": "org.mass4.turian.physics",
+  "dependencies": {},
+  "exclude": [
+    "Brick~/Tests",
+    ".github",
+    ".gitignore",
+    ".script-*.py",
+    ".script-*.cs",
+    ".script-*.sh",
+    ".editorconfig"
+  ],
+  "roles": {
+    "source": "Brick~/Source",
+    "tests": "Brick~/Tests",
+    "precast": "Brick~/Precast",
+    "bake": "Brick~/Bake"
+  },
+  "bake": "auto"
+}

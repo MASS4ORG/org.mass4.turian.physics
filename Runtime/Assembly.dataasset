@@ -1,0 +1,8 @@
+{
+  "__TypeId": "ca028d68-85a9-5f3d-ad2f-c54db757d6fa",
+  "Name": "Turian.Engine.Physics",
+  "RootNamespace": "Turian.Engine.Physics",
+  "Id": "2e6de601-069d-5c71-9922-0220af830eaf",
+  "EditorOnly": false,
+  "AllowUnsafeCode": false
+}
