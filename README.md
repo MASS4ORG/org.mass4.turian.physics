@@ -9,9 +9,15 @@ Enable `org.mass4.turian.physics` to use `Turian.Engine.Physics`: Unity-style ri
 - `MeshColliderComponent` builds a collider from a mesh, a model or script geometry. Convex meshes can be dynamic; other meshes are static only.
 - `HeightfieldColliderComponent` turns a square grid of heights into static terrain; `SetHeights` and `SampleHeight` follow Unity's terrain API.
 - `FixedJointComponent`, `HingeJointComponent`, `SliderJointComponent`, `BallSocketJointComponent`, `DistanceJointComponent` and `SpringJointComponent` connect two bodies, or a body and the world. Hinges and sliders have motors, limits and springs.
-- `CharacterControllerComponent` moves a capsule with `Move` and `SimpleMove`, climbs steps and slopes, and rides moving platforms. Like Unity's, it does not push rigidbodies.
+- `CharacterControllerComponent` moves a capsule with `Move` and `SimpleMove`, climbs steps and slopes, and rides moving platforms. `GroundSnapDistance` follows small drops; `Teleport` clears the previous support and falling velocity. Like Unity's, it does not push rigidbodies.
 - `WheelColliderComponent` is a raycast vehicle wheel with suspension, tyre friction curves, motor and brake torque, and steering. It pushes the rigidbody it belongs to.
 - `PhysicsMaterial` is a data asset with friction, bounciness and Unity's combine modes.
+
+## Skeleton ragdolls
+
+`RagdollBuilder.FromSkeleton(root, bones)` fits capsules and limited ball-socket joints to selected posed bone nodes. Input order does not matter; joints connect the nearest selected ancestors, including through skipped helper bones. `Create(root, definitions, settings)` accepts explicit `RagdollBone.EndBone`, radius overrides and relative mass weights. `RagdollSettings` controls total mass, default radius, terminal segment length, swing limits and the initial mode. Invalid definitions fail before the source hierarchy changes.
+
+The returned `RagdollRig` owns independent physics proxies and preserves the original bone hierarchy. While kinematic, call `SyncFromBones` after animation; while dynamic, call `SyncToBones` after physics and before rendering. `SetKinematic` transfers the current pose and clears velocities. Animation mode disables generated physics membership. `RestoreBindPose` restores captured local bone transforms, and `Dispose` destroys only the generated group. The helper works with bone nodes supplied by an animation/import system; it does not implement skinning or animation itself. Example 12's Ragdoll scene demonstrates fitting and both pose directions with a procedural mannequin.
 
 ## Settings and stepping
 

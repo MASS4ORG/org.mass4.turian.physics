@@ -263,7 +263,8 @@ public sealed partial class PhysicsScene
             collider.WorldPose(out var shape);
             var handle = world.CreateShape(shape);
             record.Shapes.Add(handle);
-            record.ColliderStates.Add((collider.Node?.TransformVersion ?? 0, local, scale));
+            record.ColliderStates.Add((collider.Node?.TransformVersion ?? 0, local, scale,
+                collider.Node?.PhysicsLayer ?? 0));
             colliders[i] = new ColliderDesc(handle, local, FilterOf(collider), MaterialOf(collider),
                 collider.IsTrigger, collider.PhysicsId);
         }

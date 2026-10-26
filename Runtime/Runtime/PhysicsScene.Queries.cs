@@ -42,17 +42,6 @@ public sealed partial class PhysicsScene : IPhysicsQueryBackend
         return ToHits(collector, length);
     }
 
-    /// <summary>Writes the nearest ray hits into <paramref name="results"/> and returns how many were written.</summary>
-    public int RaycastNonAlloc(Vector3 origin, Vector3 direction, Span<RaycastHit> results,
-        float maxDistance = float.PositiveInfinity, LayerMask? layerMask = null,
-        QueryTriggerInteraction queryTriggerInteraction = default)
-    {
-        var hits = RaycastAll(origin, direction, maxDistance, layerMask, queryTriggerInteraction);
-        var count = Math.Min(hits.Length, results.Length);
-        hits.AsSpan(0, count).CopyTo(results);
-        return count;
-    }
-
     /// <summary>Sweeps a sphere and finds the nearest collider it meets.</summary>
     public bool SphereCast(Vector3 origin, float radius, Vector3 direction, out RaycastHit hit,
         float maxDistance = float.PositiveInfinity, LayerMask? layerMask = null,

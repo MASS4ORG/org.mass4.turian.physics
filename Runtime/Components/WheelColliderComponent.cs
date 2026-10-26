@@ -206,13 +206,11 @@ public class WheelColliderComponent : ColliderComponent
 
         while (pending.TryPop(out var node))
         {
-            foreach (var component in node.Components)
+            if (!node.IsActive || node.IsDestroyed)
             {
-                if (component is WheelColliderComponent { IsActive: true } wheel && wheel.AttachedRigidbody == body)
-                {
-                    count++;
-                }
+                continue;
             }
+            count += CountWheelsOn(node, body);
 
             foreach (var child in node.Children)
             {
@@ -220,6 +218,19 @@ public class WheelColliderComponent : ColliderComponent
             }
         }
 
+        return count;
+    }
+
+    static int CountWheelsOn(Node node, RigidbodyComponent body)
+    {
+        var count = 0;
+        foreach (var component in node.Components)
+        {
+            if (component is WheelColliderComponent { IsActive: true } wheel && wheel.AttachedRigidbody == body)
+            {
+                count++;
+            }
+        }
         return count;
     }
 }

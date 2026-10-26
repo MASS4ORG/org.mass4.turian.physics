@@ -12,6 +12,9 @@ public interface IPhysicsWorld : IDisposable
     /// <summary>The number of kinematic, dynamic and static bodies.</summary>
     int BodyCount { get; }
 
+    /// <summary>Current indexed body counts, or null when this backend requires per-body counting.</summary>
+    PhysicsBodyCounts? BodyCounts => null;
+
     /// <summary>Creates collision geometry bodies can share.</summary>
     ShapeHandle CreateShape(in ShapeDesc description);
 
@@ -125,3 +128,9 @@ public interface IPhysicsWorld : IDisposable
     /// <summary>The trigger overlaps of the last step, including exits.</summary>
     ReadOnlySpan<TriggerEvent> Triggers { get; }
 }
+
+/// <summary>Current backend membership and sleep counts, including kinematic bodies.</summary>
+/// <param name="Bodies">All bodies, including statics.</param>
+/// <param name="StaticBodies">Bodies that cannot move.</param>
+/// <param name="SleepingBodies">Dynamic and kinematic bodies currently asleep.</param>
+public readonly record struct PhysicsBodyCounts(int Bodies, int StaticBodies, int SleepingBodies);

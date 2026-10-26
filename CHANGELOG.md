@@ -6,4 +6,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.0]
 
-- Added: 3D physics components and backend contracts #64 #48 #111.
+- Added: 3D physics components #64 #48 #111.

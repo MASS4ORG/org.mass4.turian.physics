@@ -40,6 +40,9 @@ public class CharacterControllerComponent : ColliderComponent
     /// <summary>The highest step, in meters, the character climbs without jumping.</summary>
     public float StepOffset { get; set; } = 0.3f;
 
+    /// <summary>How far a grounded character follows descending ground without requiring a downward move.</summary>
+    public float GroundSnapDistance { get; set; } = 0.3f;
+
     /// <summary>The gap kept between the capsule and what it touches, so sweeps never start inside geometry.</summary>
     public float SkinWidth { get; set; } = 0.02f;
 
@@ -84,22 +87,39 @@ public class CharacterControllerComponent : ColliderComponent
         center = Depenetrate(world, center);
         startFeet = center.Y - Height * 0.5f;
         var flags = CollisionFlags.None;
-        if (motion.LengthSquared() >= MinMoveDistance * MinMoveDistance)
-        {
-            var horizontal = motion with { Y = 0f };
-            var lift = wasGrounded && horizontal.LengthSquared() > 0f ? StepOffset : 0f;
-            var raised = Slide(world, ref center, new Vector3(0, MathF.Max(motion.Y, 0f) + lift, 0), Phase.Up, ref flags);
-            Slide(world, ref center, horizontal, Phase.Across, ref flags);
-            var snap = wasGrounded && motion.Y <= 0f ? StepOffset : 0f;
-            var drop = MathF.Min(motion.Y, 0f) - MathF.Min(raised, lift);
-            Descend(world, ref center, drop, snap, ref flags);
-        }
+        Travel(world, ref center, motion, wasGrounded, ref flags);
+        ProbeGround(world, ref center, motion, wasGrounded, ref flags);
 
         node.GlobalTransform = node.GlobalTransform with { Position = center - Center };
         CollisionFlags = flags;
         TrackGround();
         Report();
         return flags;
+    }
+
+    void Travel(IPhysicsWorld world, ref Vector3 center, Vector3 motion, bool wasGrounded, ref CollisionFlags flags)
+    {
+        if (motion.LengthSquared() < MinMoveDistance * MinMoveDistance)
+        {
+            return;
+        }
+        var horizontal = motion with { Y = 0f };
+        var lift = wasGrounded && horizontal.LengthSquared() > 0f ? StepOffset : 0f;
+        var raised = Slide(world, ref center, new Vector3(0, MathF.Max(motion.Y, 0f) + lift, 0), Phase.Up, ref flags);
+        Slide(world, ref center, horizontal, Phase.Across, ref flags);
+        var drop = MathF.Min(motion.Y, 0f) - MathF.Min(raised, lift);
+        Descend(world, ref center, drop, 0f, ref flags);
+    }
+
+    void ProbeGround(IPhysicsWorld world, ref Vector3 center, Vector3 motion, bool wasGrounded,
+        ref CollisionFlags flags)
+    {
+        if (motion.Y > 0f || (flags & CollisionFlags.Below) != 0)
+        {
+            return;
+        }
+        var distance = wasGrounded ? MathF.Max(0f, GroundSnapDistance) : SkinWidth * 2f;
+        Descend(world, ref center, 0f, distance, ref flags);
     }
 
     /// <summary>
@@ -121,6 +141,21 @@ public class CharacterControllerComponent : ColliderComponent
         }
 
         return IsGrounded;
+    }
+
+    /// <summary>Places the node at a world position and clears grounding, platform tracking and falling velocity.</summary>
+    public void Teleport(Vector3 position)
+    {
+        if (Node is { } node)
+        {
+            node.GlobalTransform = node.GlobalTransform with { Position = position };
+        }
+        ground = null;
+        groundPose = default;
+        fallSpeed = 0;
+        Velocity = Vector3.Zero;
+        CollisionFlags = CollisionFlags.None;
+        hits.Clear();
     }
 
     enum Phase

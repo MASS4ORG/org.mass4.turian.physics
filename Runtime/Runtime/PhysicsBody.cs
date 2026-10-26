@@ -48,8 +48,8 @@ sealed class PhysicsBody(Node node, RigidbodyComponent? rigidbody)
     /// <summary>The node's transform version last synchronized.</summary>
     public long Version { get; set; }
 
-    /// <summary>Each collider's transform version and geometry when last synchronized.</summary>
-    public List<(long Version, PhysicsPose Local, Vector3 Scale)> ColliderStates { get; } = [];
+    /// <summary>Each collider's transform version, geometry and layer when last synchronized.</summary>
+    public List<(long Version, PhysicsPose Local, Vector3 Scale, int Layer)> ColliderStates { get; } = [];
 
     /// <summary>The pose before the last step, for interpolation.</summary>
     public PhysicsPose Previous { get; set; }
@@ -64,7 +64,7 @@ sealed class PhysicsBody(Node node, RigidbodyComponent? rigidbody)
         return new PhysicsPose(global.Position, global.Orientation);
     }
 
-    /// <summary>Whether the node and every collider keep the transform versions last synchronized.</summary>
+    /// <summary>Whether the node and every collider keep their synchronized transform versions and layers.</summary>
     public bool InSync()
     {
         if (Node.TransformVersion != Version)
@@ -74,7 +74,9 @@ sealed class PhysicsBody(Node node, RigidbodyComponent? rigidbody)
 
         for (var i = 0; i < Colliders.Count; i++)
         {
-            if ((Colliders[i].Node?.TransformVersion ?? 0) != ColliderStates[i].Version)
+            var node = Colliders[i].Node;
+            if ((node?.TransformVersion ?? 0) != ColliderStates[i].Version ||
+                (node?.PhysicsLayer ?? 0) != ColliderStates[i].Layer)
             {
                 return false;
             }
@@ -101,11 +103,16 @@ sealed class PhysicsBody(Node node, RigidbodyComponent? rigidbody)
         return (origin.Inverse().Multiply(pose), collider.Node?.GlobalTransform.Scale ?? Vector3.One);
     }
 
-    /// <summary>Whether a collider moved relative to the body or was rescaled since the body was built.</summary>
+    /// <summary>Whether a collider's layer, local pose or scale changed since the body was built.</summary>
     public bool GeometryChanged(int index, in PhysicsPose origin)
     {
         var collider = Colliders[index];
         var state = ColliderStates[index];
+        if ((collider.Node?.PhysicsLayer ?? 0) != state.Layer)
+        {
+            return true;
+        }
+
         var version = collider.Node?.TransformVersion ?? 0;
         if (version == state.Version)
         {

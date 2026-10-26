@@ -35,11 +35,16 @@ public sealed partial class PhysicsScene
     long simulateTicks;
     int contactPairs;
 
-    /// <summary>The scene's current size and the cost of its last step; body states are counted when read.</summary>
+    /// <summary>The scene's current size and last step cost, using backend counts when available.</summary>
     public PhysicsStatistics Statistics
     {
         get
         {
+            if (World?.BodyCounts is { } counts && counts.Bodies == byHandle.Count)
+            {
+                return Snapshot(counts.StaticBodies, counts.SleepingBodies);
+            }
+
             var statics = 0;
             var sleeping = 0;
             foreach (var record in byHandle.Values)
@@ -54,10 +59,12 @@ public sealed partial class PhysicsScene
                 }
             }
 
-            return new PhysicsStatistics(byHandle.Count, statics, sleeping, JointCount, contactPairs, steps,
-                Milliseconds(stepTicks), Milliseconds(simulateTicks));
+            return Snapshot(statics, sleeping);
         }
     }
+
+    PhysicsStatistics Snapshot(int statics, int sleeping) => new(byHandle.Count, statics, sleeping, JointCount,
+        contactPairs, steps, Milliseconds(stepTicks), Milliseconds(simulateTicks));
 
     static double Milliseconds(long ticks) => ticks * 1000d / Stopwatch.Frequency;
 }
