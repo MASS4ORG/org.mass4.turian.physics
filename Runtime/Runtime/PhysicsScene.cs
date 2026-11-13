@@ -3,12 +3,13 @@ using System.Diagnostics;
 namespace Turian.Engine.Physics;
 
 /// <summary>
-/// The 3D physics of one running game session: owns the backend world, keeps it in step with the scene's
-/// colliders and rigidbodies, dispatches collision callbacks and answers Unity-style queries. Without a backend
-/// brick it simulates nothing and every query misses.
+/// The 3D physics of one running game session, as a session-lifetime subsystem: owns the backend world, keeps it in
+/// step with the scene's colliders and rigidbodies, dispatches collision callbacks and answers Unity-style queries.
+/// One world survives scene loads and is recreated when the session restarts. Without a backend brick it simulates
+/// nothing and every query misses.
 /// </summary>
 /// <remarks>Used from the game loop thread only.</remarks>
-public sealed partial class PhysicsScene : IFixedTickSystem, IDisposable
+public sealed partial class PhysicsScene : ISubsystem, IFixedTickSystem, IDisposable
 {
     readonly LayerFilter? layers;
     readonly SimulationClock? clock;
@@ -230,6 +231,10 @@ public sealed partial class PhysicsScene : IFixedTickSystem, IDisposable
             Interpolate((float)alpha);
         }
     }
+
+    void ISubsystem.Start() { }
+
+    void ISubsystem.Stop() { }
 
     /// <inheritdoc />
     public void Dispose()

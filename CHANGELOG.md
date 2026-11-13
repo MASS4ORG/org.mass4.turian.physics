@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-- Changed: brick workflows and publisher secret setup.
+- Changed: the physics world is a session subsystem.
 
 ## [1.0.0]
 
